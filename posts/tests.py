@@ -20,7 +20,7 @@ class PostAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
     def test_create_post_unauthenticated(self):
         response = self.client.post(self.url, data={'content': 'Teste não autenticado'})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     def test_create_post_authenticated(self):
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, data={'content': 'Teste feitor com o user autenticado'})
@@ -36,7 +36,11 @@ class PostAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.other_user)
         response = self.client.delete(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
+    def test_obtain_jwt_token(self):
+        response = self.client.post(reverse('token_obtain_pair'), data={'username': 'testuser', 'password': 'password123'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
 
 
 
