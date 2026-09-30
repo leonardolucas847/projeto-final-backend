@@ -14,10 +14,15 @@ class PostAPITestCase(APITestCase):
         self.url = reverse('post-list')
         self.other_user = User.objects.create_user(username='otheruser', password='password123')
         self.post = Post.objects.create(author=self.user, content='Post original do testuser')
+        self.post2 = Post.objects.create(author=self.user, content='apredendo react')
+        self.post3 = Post.objects.create(author=self.user, content='usando o DRF')
+
         self.detail_url = reverse('post-detail', kwargs={'pk': self.post.pk})
     def test_list_posts(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('count', response.data)
+        self.assertIn('results', response.data)
     def test_create_post_unauthenticated(self):
         response = self.client.post(self.url, data={'content': 'Teste não autenticado'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -41,6 +46,18 @@ class PostAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('access', response.data)
         self.assertIn('refresh', response.data)
+
+
+    def test_search_posts (self):
+        response = self.client.get(self.url, {'search': 'DRF'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+
+    def test_ordering_posts(self):
+        response = self.client.get(self.url, {'ordering': 'id'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['results'][0]['id'], self.post.id)
+
 
 
 
