@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.test import TestCase
-from .models import Post
+from .models import Post, Comment
 from django.contrib.auth.models import User
 
 
@@ -58,6 +58,29 @@ class PostAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['results'][0]['id'], self.post.id)
 
+class CommentAPITestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='password123')
+        self.other_user = User.objects.create_user(username='user2', password='password123')
+        self.post = Post.objects.create(author=self.user, content='post para teste')
+        self.comment = Comment.objects.create(post=self.post, author=self.user , content='comentario inicial do teste')
+        self.list_url = reverse('comment-list')
+        self.detail_url = reverse(
+            'comment-detail', kwargs={'pk': self.comment.pk}
+        )
+    def test_create_comment_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        data = {'post': self.post.id, 'content': 'Novo comentário'}
+        response = self.client.post(self.list_url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['author_username'], self.user.username)
+
+    def test_update_comment_by_non_author(self):
+        self.client.force_authenticate(user=self.other_user)
+        response = self.client.put(
+            self.detail_url, {'content': 'Tentando alterar'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 
