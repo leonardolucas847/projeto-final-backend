@@ -16,6 +16,8 @@ class PostAPITestCase(APITestCase):
         self.post = Post.objects.create(author=self.user, content='Post original do testuser')
         self.post2 = Post.objects.create(author=self.user, content='apredendo react')
         self.post3 = Post.objects.create(author=self.user, content='usando o DRF')
+        self.comment = Comment.objects.create(post=self.post, author=self.user, content='comentario inicial do teste')
+        self.comment2 = Comment.objects.create(post=self.post, author=self.user, content='comentario 2 inicial do teste')
 
         self.detail_url = reverse('post-detail', kwargs={'pk': self.post.pk})
     def test_list_posts(self):
@@ -58,12 +60,19 @@ class PostAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['results'][0]['id'], self.post.id)
 
+    def test_get_post_detail_with_comments(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['comments']), 2)
+
 class CommentAPITestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='password123')
         self.other_user = User.objects.create_user(username='user2', password='password123')
         self.post = Post.objects.create(author=self.user, content='post para teste')
         self.comment = Comment.objects.create(post=self.post, author=self.user , content='comentario inicial do teste')
+
         self.list_url = reverse('comment-list')
         self.detail_url = reverse(
             'comment-detail', kwargs={'pk': self.comment.pk}
@@ -81,7 +90,4 @@ class CommentAPITestCase(APITestCase):
             self.detail_url, {'content': 'Tentando alterar'}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-
-
 

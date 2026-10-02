@@ -10,7 +10,7 @@ from posts.pagination import StandardResultsSetPagination
 # Create your views here.
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-id')
+    queryset = Post.objects.all().order_by('-id').prefetch_related('comments')
     serializer_class = PostSerializer
     pagination_class = StandardResultsSetPagination
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
