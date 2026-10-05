@@ -65,6 +65,44 @@ class PostAPITestCase(APITestCase):
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['comments']), 2)
+    def test_like_post_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        like_url = reverse('post-like', kwargs={'pk': self.post.pk})
+        response = self.client.post(like_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['detail'], 'Post curtido com sucesso.')
+    def test_like_post_unauthenticated(self):
+        like_url = reverse('post-like', kwargs={'pk': self.post.pk})
+        response = self.client.post(like_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    def test_like_toggle_post(self):
+        self.client.force_authenticate(user=self.user)
+        like_url = reverse('post-like', kwargs={'pk': self.post.pk})
+
+        response = self.client.post(like_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['detail'], 'Post curtido com sucesso.')
+        self.assertTrue(self.post.likes.filter(id=self.user.id).exists())
+        response2 = self.client.post(like_url)
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        self.assertEqual(response2.data['detail'], 'Curtida removida.')
+        self.assertFalse(self.post.likes.filter(id=self.user.id).exists())
+
+    def test_get_my_posts_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        posts_url = reverse('post-me')
+        response = self.client.get(posts_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 3)
+        for post_data in response.data['results']:
+            self.assertEqual(post_data["author_username"], self.user.username)
+    def test_get_my_posts_unauthenticated(self):
+        posts_url = reverse('post-me')
+        response = self.client.get(posts_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
 
 class CommentAPITestCase(APITestCase):
     def setUp(self):
