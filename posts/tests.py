@@ -120,7 +120,15 @@ class PostAPITestCase(APITestCase):
         self.assertEqual(response1.data['likes_count'], 1)
         self.assertFalse(response1.data['is_liked'])
 
-
+    def test_pagination_structure(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('count', response.data)
+        self.assertIn('next', response.data)
+        self.assertIn('previous', response.data)
+        self.assertIn('results', response.data)
+        self.assertIsInstance(response.data['results'], list)
 
 def test_post_serializer_comments_count(self):
     Comment.objects.create(post=self.post, author=self.user, content="Primeiro comentário")

@@ -4,7 +4,7 @@ from posts.models import Post, Comment
 from posts.serializers.post_serializer import PostSerializer
 from .serializers.comment_serializer import CommentSerializer
 from .permissions import IsAuthorOrReadOnly
-from posts.pagination import StandardResultsSetPagination
+from posts.pagination import PostPagination
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,9 +13,9 @@ from rest_framework.response import Response
 # Create your views here.
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-id').prefetch_related('comments')
+    queryset = Post.objects.all().order_by('-id').select_related('author').prefetch_related('likes', 'comments__author')
     serializer_class = PostSerializer
-    pagination_class = StandardResultsSetPagination
+    pagination_class = PostPagination
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['content']
