@@ -23,14 +23,14 @@ class PostAPITestCase(APITestCase):
 
         self.detail_url = reverse('post-detail', kwargs={'pk': self.post.pk})
 
-    @override_settings(DEBUG=True)
+    # @override_settings(DEBUG=True)
     def test_list_posts(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('count', response.data)
         self.assertIn('results', response.data)
-        for query in connection.queries:
-            print(f"\n[SQL]: {query['sql']}\n[TEMPO]: {query['time']}s")
+        # for query in connection.queries:
+        #     print(f"\n[SQL]: {query['sql']}\n[TEMPO]: {query['time']}s")
     def test_create_post_unauthenticated(self):
         response = self.client.post(self.url, data={'content': 'Teste não autenticado'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -120,7 +120,15 @@ class PostAPITestCase(APITestCase):
         self.assertEqual(response1.data['likes_count'], 1)
         self.assertFalse(response1.data['is_liked'])
 
-
+    def test_pagination_structure(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('count', response.data)
+        self.assertIn('next', response.data)
+        self.assertIn('previous', response.data)
+        self.assertIn('results', response.data)
+        self.assertIsInstance(response.data['results'], list)
 
 def test_post_serializer_comments_count(self):
     Comment.objects.create(post=self.post, author=self.user, content="Primeiro comentário")
