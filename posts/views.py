@@ -13,7 +13,7 @@ from rest_framework.response import Response
 # Create your views here.
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-id').prefetch_related('comments')
+    queryset = Post.objects.all().order_by('-id').select_related('author').prefetch_related('likes', 'comments__author')
     serializer_class = PostSerializer
     pagination_class = StandardResultsSetPagination
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]

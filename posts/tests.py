@@ -23,14 +23,14 @@ class PostAPITestCase(APITestCase):
 
         self.detail_url = reverse('post-detail', kwargs={'pk': self.post.pk})
 
-    # @override_settings(DEBUG=True)
+    @override_settings(DEBUG=True)
     def test_list_posts(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('count', response.data)
         self.assertIn('results', response.data)
-        # for query in connection.queries:
-        #     print(f"\n[SQL]: {query['sql']}\n[TEMPO]: {query['time']}s")
+        for query in connection.queries:
+            print(f"\n[SQL]: {query['sql']}\n[TEMPO]: {query['time']}s")
     def test_create_post_unauthenticated(self):
         response = self.client.post(self.url, data={'content': 'Teste não autenticado'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
