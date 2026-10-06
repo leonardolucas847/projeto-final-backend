@@ -4,6 +4,8 @@ from rest_framework.test import APITestCase
 from django.test import TestCase
 from .models import Post, Comment
 from django.contrib.auth.models import User
+from django.db import connection
+from django.test import override_settings
 
 
 # Create your tests here.
@@ -20,11 +22,15 @@ class PostAPITestCase(APITestCase):
         self.comment2 = Comment.objects.create(post=self.post, author=self.user, content='comentario 2 inicial do teste')
 
         self.detail_url = reverse('post-detail', kwargs={'pk': self.post.pk})
+
+    # @override_settings(DEBUG=True)
     def test_list_posts(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('count', response.data)
         self.assertIn('results', response.data)
+        # for query in connection.queries:
+        #     print(f"\n[SQL]: {query['sql']}\n[TEMPO]: {query['time']}s")
     def test_create_post_unauthenticated(self):
         response = self.client.post(self.url, data={'content': 'Teste não autenticado'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -101,8 +107,27 @@ class PostAPITestCase(APITestCase):
         posts_url = reverse('post-me')
         response = self.client.get(posts_url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    def test_post_serializer_likes_fields_authenticated(self):
+        self.post.likes.add(self.user)
+        self.client.force_authenticate(user=self.user)
+        detail_url = reverse('post-detail', kwargs={'pk': self.post.pk})
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['likes_count'], 1)
+        self.assertTrue(response.data['is_liked'])
+        self.client.force_authenticate(user=self.other_user)
+        response1 = self.client.get(detail_url)
+        self.assertEqual(response1.data['likes_count'], 1)
+        self.assertFalse(response1.data['is_liked'])
 
 
+
+def test_post_serializer_comments_count(self):
+    Comment.objects.create(post=self.post, author=self.user, content="Primeiro comentário")
+    Comment.objects.create(post=self.post, author=self.user, content="Segundo comentário")
+    response = self.client.get(self.detail_url)
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    self.assertEqual(response.data['comments_count'], 2)
 
 class CommentAPITestCase(APITestCase):
     def setUp(self):
