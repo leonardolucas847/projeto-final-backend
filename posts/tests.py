@@ -130,12 +130,12 @@ class PostAPITestCase(APITestCase):
         self.assertIn('results', response.data)
         self.assertIsInstance(response.data['results'], list)
 
-def test_post_serializer_comments_count(self):
-    Comment.objects.create(post=self.post, author=self.user, content="Primeiro comentário")
-    Comment.objects.create(post=self.post, author=self.user, content="Segundo comentário")
-    response = self.client.get(self.detail_url)
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
-    self.assertEqual(response.data['comments_count'], 2)
+    def test_post_serializer_comments_count(self):
+        Comment.objects.create(post=self.post, author=self.user, content="Primeiro comentário")
+        Comment.objects.create(post=self.post, author=self.user, content="Segundo comentário")
+        response = self.client.get(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['comments_count'], 2)
 
 class CommentAPITestCase(APITestCase):
     def setUp(self):
