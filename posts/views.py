@@ -1,4 +1,4 @@
-from django.db.models.fields import return_None
+
 from rest_framework import viewsets, permissions, filters
 from posts.models import Post, Comment
 from posts.serializers.post_serializer import PostSerializer
@@ -38,6 +38,24 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(posts, many=True)
         return Response(serializer.data)
 
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def feed(self, request):
+        followed_users = request.user.profile.following.values_list(
+            'user_id', flat=True
+        )
+        posts = self.get_queryset().filter(author_id__in=followed_users)
+
+        page = self.paginate_queryset(posts)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data)
     @action(
         detail=True,
         methods=['post'],

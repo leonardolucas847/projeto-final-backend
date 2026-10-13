@@ -131,34 +131,64 @@ class PostAPITestCase(APITestCase):
         self.assertIsInstance(response.data['results'], list)
 
     def test_post_serializer_comments_count(self):
-        Comment.objects.create(post=self.post, author=self.user, content="Primeiro comentário")
-        Comment.objects.create(post=self.post, author=self.user, content="Segundo comentário")
-        response = self.client.get(self.detail_url)
+        # Cria um post isolado para o teste de contagem
+        test_post = Post.objects.create(
+            author=self.user, content='Post especifico para teste de contagem'
+        )
+        Comment.objects.create(
+            post=test_post, author=self.user, content='Primeiro comentário'
+        )
+        Comment.objects.create(
+            post=test_post, author=self.user, content='Segundo comentário'
+        )
+
+        detail_url = reverse('post-detail', kwargs={'pk': test_post.pk})
+        response = self.client.get(detail_url)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['comments_count'], 2)
 
 class CommentAPITestCase(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='password123')
-        self.other_user = User.objects.create_user(username='user2', password='password123')
-        self.post = Post.objects.create(author=self.user, content='post para teste')
-        self.comment = Comment.objects.create(post=self.post, author=self.user , content='comentario inicial do teste')
 
-        self.list_url = reverse('comment-list')
-        self.detail_url = reverse(
-            'comment-detail', kwargs={'pk': self.comment.pk}
-        )
-    def test_create_comment_authenticated(self):
-        self.client.force_authenticate(user=self.user)
-        data = {'post': self.post.id, 'content': 'Novo comentário'}
-        response = self.client.post(self.list_url, data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['author_username'], self.user.username)
+  def setUp(self):
+    self.user = User.objects.create_user(
+        username='testuser', password='password123'
+    )
+    self.other_user = User.objects.create_user(
+        username='user2', password='password123'
+    )
+    self.post1 = Post.objects.create(
+        author=self.user, content='post para teste 1111111111'
+    )
+    self.post2 = Post.objects.create(
+        author=self.user, content='post para teste 22222222'
+    )
 
-    def test_update_comment_by_non_author(self):
-        self.client.force_authenticate(user=self.other_user)
-        response = self.client.put(
-            self.detail_url, {'content': 'Tentando alterar'}
-        )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    # Exatamente 2 comentários para o post1
+    self.comment = Comment.objects.create(
+        post=self.post1,
+        author=self.user,
+        content='comentario inicial do teste',
+    )
+    Comment.objects.create(post=self.post1, author=self.user, content='C1')
 
+    # Exatamente 2 comentários para o post2
+    Comment.objects.create(post=self.post2, author=self.user, content='C2')
+    Comment.objects.create(post=self.post2, author=self.user, content='C3')
+
+    self.list_url = reverse('comment-list')
+    self.detail_url = reverse(
+        'comment-detail', kwargs={'pk': self.comment.pk}
+    )
+
+  def test_create_comment_authenticated(self):
+    self.client.force_authenticate(user=self.user)
+    data = {'post': self.post1.id, 'content': 'Novo comentário'}
+    response = self.client.post(self.list_url, data)
+    self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    self.assertEqual(response.data['author_username'], self.user.username)
+
+  def test_update_comment_by_non_author(self):
+    self.client.force_authenticate(user=self.other_user)
+    response = self.client.put(self.detail_url, {'content': 'Tentando alterar'})
+    self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
