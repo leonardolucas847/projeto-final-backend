@@ -1,5 +1,6 @@
 from rest_framework import serializers, status
 from posts.models.post import Post
+from posts.models.comment import Comment
 from posts.serializers.comment_serializer import CommentSerializer
 
 
@@ -25,14 +26,13 @@ class PostSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["author"]
     def get_likes_count(self, obj):
-        return obj.likes.count()
+        return len(obj.likes.all())
     def get_is_liked(self, obj):
         request = self.context.get('request')
-        if request:
-            if request.user.is_authenticated:
-                return obj.likes.filter(id=request.user.id).exists()
-
+        if request and request.user.is_authenticated:
+            # Verifica na lista prefetch sem executar SQL extra (.filter().exists())
+            return request.user in obj.likes.all()
         return False
 
     def get_comments_count(self, obj):
-        return obj.comments.count()
+        return Comment.objects.filter(post_id=obj.id).count()
