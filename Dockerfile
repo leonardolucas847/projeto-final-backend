@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.11-slim
 
 # Evita a criação de arquivos .pyc e garante logs diretos no terminal
 ENV PYTHONUNBUFFERED=1 \
