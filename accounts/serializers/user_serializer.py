@@ -1,10 +1,9 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
-
-# Importa o modelo Profile do diretório models/profile.py
-from accounts.models.profile import Profile
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+
+from accounts.models.profile import Profile
+
 User = get_user_model()
 
 
@@ -20,6 +19,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
     email = serializers.EmailField(
         source='user.email', required=False, allow_blank=True
     )
@@ -39,6 +39,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = (
             'id',
+            'username',
             'email',
             'first_name',
             'last_name',
@@ -48,44 +49,43 @@ class UserProfileSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        # 1. Extrai os dados encadeados do utilizador (se existirem)
+        # 1. Extrai os dados encadeados do utilizador
         user_data = validated_data.pop('user', {})
-        user = instance.user  # Acede ao modelo User associado a este perfil
+        user = instance.user
 
         # 2. Atualiza os campos do User (email, first_name, last_name)
         for attr, value in user_data.items():
             setattr(user, attr, value)
-        user.save()  # Salva uma única vez fora do loop
+        user.save()
 
-        # 3. Atualiza os campos nativos do Profile (bio, avatar)
+        # 3. Atualiza os campos do Profile (bio, avatar)
         return super().update(instance, validated_data)
 
 
 class ChangePasswordSerializer(serializers.Serializer):
-  old_password = serializers.CharField(
-      required=True, write_only=True, style={'input_type': 'password'}
-  )
-  new_password = serializers.CharField(
-      required=True, write_only=True, style={'input_type': 'password'}
-  )
+    old_password = serializers.CharField(
+        required=True, write_only=True, style={'input_type': 'password'}
+    )
+    new_password = serializers.CharField(
+        required=True, write_only=True, style={'input_type': 'password'}
+    )
 
-  def validate_old_password(self, value):
-    request = self.context.get('request')
-    if request and request.user:
-      if not request.user.check_password(value):
-        raise serializers.ValidationError('A senha atual está incorreta.')
-    return value
+    def validate_old_password(self, value):
+        request = self.context.get('request')
+        if request and request.user:
+            if not request.user.check_password(value):
+                raise serializers.ValidationError('A senha atual está incorreta.')
+        return value
 
-  def validate_new_password(self, value):
-    request = self.context.get('request')
-    user = request.user if request else None
-    # Valida regras padrão do Django (tamanho mínimo, senhas comuns, etc.)
-    validate_password(value, user=user)
-    return value
+    def validate_new_password(self, value):
+        request = self.context.get('request')
+        user = request.user if request else None
+        validate_password(value, user=user)
+        return value
 
-  def validate(self, attrs):
-    if attrs.get('old_password') == attrs.get('new_password'):
-      raise serializers.ValidationError({
-          'new_password': 'A nova senha não pode ser igual à senha atual.'
-      })
-    return attrs
+    def validate(self, attrs):
+        if attrs.get('old_password') == attrs.get('new_password'):
+            raise serializers.ValidationError({
+                'new_password': 'A nova senha não pode ser igual à senha atual.'
+            })
+        return attrs
