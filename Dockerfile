@@ -21,19 +21,29 @@ RUN apt-get update && apt-get install -y \
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="$POETRY_HOME/bin:$PATH"
 
+FROM python:3.11-slim
+
+# Evita gerar arquivos .pyc e força saída direta no terminal
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-# Copia os arquivos de dependência do Poetry
-COPY pyproject.toml poetry.lock* /app/
+# Instala dependências do sistema necessárias para psycopg2 e imagens
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instala as dependências do projeto
-RUN poetry install --no-root --no-dev
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia todo o código-fonte para o container
-COPY . /app/
+COPY . .
 
-# Expõe a porta do Django
+# Coleta arquivos estáticos para o Swagger carregar CSS/JS
+RUN python manage.py collectstatic --noinput
+
 EXPOSE 8000
 
-# Executa as migrações e inicia o servidor acessível externamente
-CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+# Executa as migrações no banco e inicia o servidor com Gunicorn
+CMD ["sh", "-c", "python manage.py migrate && gunicorn config.wsgi:projeto-final --bind 0.0.0.0:8000"]
