@@ -85,6 +85,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API RESTful completa para gerenciamento e publicação de posts com autenticação JWT.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 WSGI_APPLICATION = "config.wsgi.application"
