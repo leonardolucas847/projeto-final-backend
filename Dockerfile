@@ -46,4 +46,4 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Executa as migrações no banco e inicia o servidor com Gunicorn
-CMD ["sh", "-c", "python manage.py migrate && gunicorn config.wsgi:projeto-final --bind 0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8000"]
