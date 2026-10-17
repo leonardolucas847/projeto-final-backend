@@ -1,49 +1,27 @@
-[project]
-name = "projeto-final"
-version = "0.1.0"
-description = "projeto final do curso EBAC na parte de backend"
-authors = [
-    {name = "Leonardo Lucas monteiro costa",email = "leonardolucas847@gmail.com"}
-]
-requires-python = ">=3.14"
-dependencies = [
-    "django (>=6.1.1,<7.0.0)",
-    "pytest (>=9.1.1,<10.0.0)",
-    "djangorestframework (>=3.18.1,<4.0.0)",
-    "djangorestframework-simplejwt (>=5.5.1,<6.0.0)",
-    "drf-spectacular (>=0.30.0,<0.31.0)",
-    "pillow (>=12.3.0,<13.0.0)",
-    "python-decouple (>=3.8,<4.0)",
-    "whitenoise (>=6.12.0,<7.0.0)"
-]
-
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[dependency-groups]
-dev = [
-    "black (>=26.5.1,<27.0.0)",
-    "flake8 (>=7.3.0,<8.0.0)",
-    "djangorestframework-stubs (>=3.18.1,<4.0.0)"
-]
-
 [tool.poetry]
 name = "social-media-api"
 version = "0.1.0"
 description = "API de Rede Social com Django REST Framework"
-authors = ["Leonardo"]
+authors = ["Leonardo Lucas Monteiro Costa <leonardolucas847@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.12"
 django = "^5.0"
 djangorestframework = "*"
+djangorestframework-simplejwt = "*"
+drf-spectacular = "*"
+pillow = "*"
+python-decouple = "*"
+whitenoise = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
-pillow = "*"
 django-cors-headers = "*"
-whitenoise = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+black = "*"
+flake8 = "*"
+djangorestframework-stubs = "*"
 
 [build-system]
 requires = ["poetry-core"]
