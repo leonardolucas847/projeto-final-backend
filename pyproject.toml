@@ -28,3 +28,23 @@ dev = [
     "flake8 (>=7.3.0,<8.0.0)",
     "djangorestframework-stubs (>=3.18.1,<4.0.0)"
 ]
+
+[tool.poetry]
+name = "social-media-api"
+version = "0.1.0"
+description = "API de Rede Social com Django REST Framework"
+authors = ["Leonardo"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.0"
+djangorestframework = "*"
+gunicorn = "*"
+psycopg2-binary = "*"
+pillow = "*"
+django-cors-headers = "*"
+whitenoise = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
