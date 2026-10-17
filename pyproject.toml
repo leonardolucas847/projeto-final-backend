@@ -16,6 +16,7 @@ whitenoise = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 django-cors-headers = "*"
+dj-database-url = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
