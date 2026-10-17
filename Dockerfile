@@ -24,8 +24,8 @@ RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 # Copia os arquivos de especificação de dependências
 COPY pyproject.toml poetry.lock* /app/
 
-# Instala as dependências do projeto diretamente no Python do container
-RUN poetry install --no-root
+# Atualiza a trava do lock sem alterar versões e instala as dependências
+RUN poetry lock --no-update && poetry install --no-root
 
 # Copia todo o código-fonte da aplicação
 COPY . /app/
