@@ -57,7 +57,7 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(posts, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated],)
     def like(self, request, pk=None):
         post = self.get_object()
         user = request.user
@@ -75,7 +75,6 @@ class PostViewSet(viewsets.ModelViewSet):
             'likes_count': post.likes.count(),
             'is_liked': is_liked
         }, status=status.HTTP_200_OK)
-
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
