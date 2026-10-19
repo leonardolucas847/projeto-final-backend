@@ -56,19 +56,25 @@ class PostViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(posts, many=True)
         return Response(serializer.data)
-    @action(
-        detail=True,
-        methods=['post'],
-        permission_classes=[permissions.IsAuthenticated],
-    )
+
+    @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
         post = self.get_object()
         user = request.user
+
         if post.likes.filter(id=user.id).exists():
             post.likes.remove(user)
-            return Response({'detail': 'Curtida removida.'}, status=status.HTTP_200_OK)
-        post.likes.add(user)
-        return Response({'detail': 'Post curtido com sucesso.'}, status=status.HTTP_200_OK)
+            is_liked = False
+        else:
+            post.likes.add(user)
+            is_liked = True
+
+        # RETORNA OS DADOS FRESCOS DIRETAMENTE NO POST (Evita precisar de um GET separado)
+        return Response({
+            'id': post.id,
+            'likes_count': post.likes.count(),
+            'is_liked': is_liked
+        }, status=status.HTTP_200_OK)
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
